@@ -1,5 +1,4 @@
 # Detection rules: each technology maps to the conditions that identify it.
-# "language": repo's primary language must match (case-insensitive).
 # "files": All entries must exist, each entry is either a plain filename string (any type) or a dict {"name": "...", "type": "file"|"dir"}.
 # "any_files": At least one entry must exist, same format as "files". Supports "*.ext" glob syntax (always matched as type "file").
 # All specified keys for a rule must be satisfied for detection to trigger.
@@ -8,11 +7,10 @@
 _RULES: list[dict] = [
     {
         "name": "Python",
-        "language": "python",
+        "any_files": ["*.py"],
     },
     {
         "name": "Arduino",
-        "language": "c++",
         "any_files": ["*.ino"],
     },
     {
@@ -89,24 +87,20 @@ def _entry_matches(candidate: str | dict, index: dict[str, str]) -> bool:
 
 def detect_technologies(repository: dict) -> list[str]:
     """
-    Inspect a repo's primary language and root directory contents and return a sorted list of detected technologies using deterministic rules.
+    Inspect a repo's file tree and detect technologies using deterministic rules
+    and return a sorted list of detected technologies using deterministic rules.
     Args:
     repository: a dict eith keys:
-    "language" (str | None): the repo's primary language.
     "contents" (list[dict]): root entries, each with "name" and "type".
     Returns:
     A sorted list of detected technology names.
     """
-    language: str = (repository.get("language") or "").lower()
     contents: list[dict] = repository.get("contents") or []
     index = _build_index(contents)
 
     detected: list[str] = []
 
     for rule in _RULES:
-        if "language" in rule and language != rule["language"]:
-            continue
-
         if "files" in rule and not all(_entry_matches(e, index) for e in rule["files"]):
             continue
 
