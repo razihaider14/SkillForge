@@ -1,5 +1,6 @@
 import asyncio
 
+from app.detector.detector import detect_technologies
 from app.github.client import get_repository_contents, get_user_repositories
 
 
@@ -16,20 +17,24 @@ async def analyze_user_repositories(username: str) -> dict:
         *[get_repository_contents(github_username, repo["name"]) for repo in repos]
     )
 
-    repositories = [
-        {
+    repositories = []
+    for repo, repo_contents in zip(repos, contents):
+        structured_contents = [
+            {
+                "name": entry["name"],
+                "type": entry["type"],
+            }
+            for entry in repo_contents
+        ]
+
+        repository = {
             "name": repo["name"],
             "language": repo.get("language"),
-            "contents": [
-                {
-                    "name": entry["name"],
-                    "type": entry["type"],
-                }
-                for entry in repo_contents
-            ],
+            "contents": structured_contents,
         }
-        for repo, repo_contents in zip(repos, contents)
-    ]
+
+        repository["technologies"] = detect_technologies(repository)
+        repositories.append(repository)
 
     return {
         "username": github_username,
