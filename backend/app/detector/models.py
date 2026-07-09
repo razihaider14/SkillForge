@@ -1,22 +1,48 @@
 """
 Core data models for the technology detector.
-Entry: a single node in a repository's file tree.
-Matcher: protocol for a single detection condition.
-Rule: a named technology with a list of matchers (all must pass).
+Entry : a single node in a repository's file tree.
+Matcher : protocol for a single detection condition.
+Rule : a named technology with a list of matchers (all must pass).
+RuleCategory : the ecosystem a technology belongs to.
+MatchResult : the output of a successful rule match, including metadata.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import Protocol, runtime_checkable
+
+
+class RuleCategory(str, Enum):
+    """
+    Broad ecosystem category for a technology rule.
+    Used for filtering, grouping, and display. A single technology may only
+    belong to one category; choose the most specific one that applies.
+    """
+
+    LANGUAGE = "language"  # Python, JavaScript, Rust, C++, ...
+    FRAMEWORK = "framework"  # Django, Rails, Spring Boot, ...
+    BUILD_SYSTEM = "build_system"  # CMake, Make, Gradle, ...
+    PACKAGE_MANAGER = "package_manager"  # Poetry, npm, Composer, Cargo, ...
+    FRONTEND = "frontend"  # HTML, CSS, Tailwind, Angular, ...
+    MOBILE = "mobile"  # Flutter, React Native, Android, ...
+    EMBEDDED = "embedded"  # Arduino, PlatformIO, ESP-IDF, ...
+    CONTAINER = "container"  # Docker, Docker Compose, ...
+    ORCHESTRATION = "orchestration"  # Kubernetes, Helm, ...
+    CI_CD = "ci_cd"  # GitHub Actions, GitLab CI, ...
+    DEVOPS = "devops"  # Terraform, Ansible, ...
+    DATABASE = "database"  # Alembic, Prisma, Flyway, ...
+    DATA_SCIENCE = "data_science"  # Jupyter, TensorFlow, ...
+    TESTING = "testing"  # pytest, Jest, JUnit, ...
 
 
 @dataclass(frozen=True)
 class Entry:
     """
-    A single fil or directory in a repository's file tree.
+    A single file or directory in a repository's file tree.
     Attributes:
-    path: Full relative path from the repo root. e.g. "src/main.py"
-    name: Full path component (filename or directory name). e.g "main.py"
-    type: "file" or "dir"
+        path: Full relative path from the repo root. e.g. "src/main.py"
+        name: Final path component (filename or directory name). e.g. "main.py"
+        type: "file" or "dir".
     """
 
     path: str
@@ -26,7 +52,7 @@ class Entry:
     @property
     def extension(self) -> str:
         """
-        Lowercase file extension including the leading dor e.g ".py"
+        Lowercase file extension including the leading dot. e.g. ".py"
         Returns an empty string if the filename has no extension.
         """
         _, dot, ext = self.name.rpartition(".")
@@ -45,9 +71,12 @@ class Entry:
 class Matcher(Protocol):
     """
     Protocol for a single detection condition.
-    A matcher receives the complete, flat list of repository entries and returns True if its condition is satisfied.
-    Within a single matcher, multiple candidate values use OR logic.
-    Across matchers in a Rule, AND logic applies; all matchers must pass for the rule to trigger.
+    A matcher receives the complete, flat list of repository entries and
+    returns True if its condition is satisfied. Within a single matcher,
+    multiple candidate values use OR logic. Across matchers in a Rule,
+    AND logic applies — all matchers must pass for the rule to trigger.
+    Any class that implements `matches(entries: list[Entry]) -> bool` satisfies
+    this protocol without inheriting from it.
     """
 
     def matches(self, entries: list[Entry]) -> bool:
@@ -60,9 +89,47 @@ class Rule:
     """
     A technology detection rule.
     Attributes:
-    name: Display name of the technology. e.g "Arduino"
-    matchers: All conditions that must be satisfied (AND logic).
+        name:       Display name of the technology. e.g. "Django"
+        matchers:   All conditions that must be satisfied (AND logic).
+        category:   The ecosystem this technology belongs to.
+        confidence: How reliable the detection signal is (0.0 - 1.0).
+                    1.0 means no false positives are expected.
+                    Use lower values for heuristics or directory-name guesses.
+        priority:   Relative ordering within a result set. Higher values
+                    surface more specific technologies above general ones.
+                    Suggested scale: language=10, package_manager=20,
+                    framework=30, very_specific_tool=40.
     """
 
     name: str
     matchers: list[Matcher]
+    category: RuleCategory
+    confidence: float = field(default=1.0)
+    priority: int = field(default=0)
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError(
+                f"Rule '{self.name}': confidence must be between 0.0 and 1.0, "
+                f"got {self.confidence}"
+            )
+
+
+@dataclass(frozen=True)
+class MatchResult:
+    """
+    The output of a successfully matched Rule.
+    Returned by the engine; the public detect_technologies() function
+    distils this into a plain list[str] for backward compatibility.
+    The richer form is available via detect_technologies_detailed().
+    Attributes:
+        name:       Technology name. e.g. "Django"
+        category:   Ecosystem category.
+        confidence: Reliability score from the matched Rule (0.0 – 1.0).
+        priority:   Ordering hint from the matched Rule.
+    """
+
+    name: str
+    category: RuleCategory
+    confidence: float
+    priority: int
