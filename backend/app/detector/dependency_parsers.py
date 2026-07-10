@@ -95,11 +95,18 @@ def parse_cargo_toml(content: str) -> set[str]:
     return names
 
 
+_GO_VERSION_SEGMENT = re.compile(r"^v[0-9]+$")
+
+
 def parse_go_mod(content: str) -> set[str]:
     """
     Extract required module paths from go.mod, along with each module's
-    final path segment (e.g. "gin" for "github.com/gin-gonic/gin") so that
-    lookups can use either the short or fully-qualified name.
+    "short" name (the last path segment, ignoring a trailing major-version
+    segment like "/v2" or "/v4" per Go's module versioning convention) so
+    that lookups can use either the short or fully-qualified name.
+
+    e.g. "github.com/gofiber/fiber/v2" yields both the full path and "fiber"
+    (not "v2", which a naive last-segment split would produce).
     """
     names: set[str] = set()
     in_require_block = False
@@ -126,7 +133,11 @@ def parse_go_mod(content: str) -> set[str]:
 
         if module_path:
             names.add(module_path)
-            names.add(module_path.rsplit("/", 1)[-1])
+            segments = module_path.split("/")
+            short = segments[-1]
+            if _GO_VERSION_SEGMENT.match(short) and len(segments) > 1:
+                short = segments[-2]
+            names.add(short)
     return names
 
 

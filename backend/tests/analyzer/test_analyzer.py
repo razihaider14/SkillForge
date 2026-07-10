@@ -87,8 +87,8 @@ class TestAnalyzeUserRepositoriesContentOptIn:
         mock_repos.return_value = [FAKE_REPO]
         mock_tree.return_value = FAKE_TREE
         mock_content.return_value = {
-            "requirements.txt": "flask\n"
-        }  # no FastAPI/React hit
+            "requirements.txt": "some-internal-package\n"
+        }  # no rule hit
 
         with_content = await analyze_user_repositories("octocat", include_content=True)
         without_content = await analyze_user_repositories(
@@ -177,7 +177,7 @@ class TestFileContentsNeverLeaksToResponse:
         serialized = json.dumps(result)
         assert "file_contents" not in serialized
         # The raw downloaded manifest text must not leak into the response
-        # either; only the derived "technologies" list should reflect it.
+        # either, only the derived "technologies" list should reflect it.
         assert "fastapi==0.100" not in serialized
 
     @patch("app.analyzer.analyzer.get_repository_file_contents", new_callable=AsyncMock)

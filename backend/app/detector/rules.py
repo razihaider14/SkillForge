@@ -32,8 +32,11 @@ from app.detector.matchers import (
     HasDirectory,
     HasExtension,
     HasFilename,
+    HasFileContent,
     HasFileGlob,
+    HasJsonKey,
     HasPath,
+    HasTomlSection,
 )
 from app.detector.models import Rule, RuleCategory
 
@@ -601,6 +604,906 @@ RULES: list[Rule] = [
         matchers=[HasDependency("react")],
         category=RuleCategory.FRAMEWORK,
         confidence=0.9,  # "react" as a dependency name is occasionally used loosely
+        priority=30,
+    ),
+    # Python: frameworks, ORMs, task queues
+    # A declared dependency is deterministic evidence the project uses that
+    # package, the manifest is the authoritative source of truth for what
+    # gets installed, so this category of rule has essentially no false
+    # positive surface beyond a project vendoring/pinning something it
+    # doesn't actually import (rare, and not something a static scan can
+    # rule out for ANY tool).
+    Rule(
+        name="Flask",
+        matchers=[HasDependency("flask")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        # "djangorestframework" is the exact PyPI/import distribution name;
+        # no other package plausibly uses this exact name.
+        name="Django REST Framework",
+        matchers=[HasDependency("djangorestframework")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="Celery",
+        matchers=[HasDependency("celery")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Scrapy",
+        matchers=[HasDependency("scrapy")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Streamlit",
+        matchers=[HasDependency("streamlit")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="SQLAlchemy",
+        matchers=[HasDependency("sqlalchemy")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="pytest",
+        matchers=[HasDependency("pytest")],
+        category=RuleCategory.TESTING,
+        confidence=0.95,
+        priority=30,
+    ),
+    # Python: static analysis & documentation
+    # [tool.X] section presence in pyproject.toml, or a tool-exclusive
+    # config filename, means the project is actually configured to run
+    # that tool, not merely capable of it.
+    Rule(
+        name="Ruff",
+        matchers=[
+            AnyOf(
+                HasFilename("ruff.toml", ".ruff.toml"),
+                HasTomlSection("pyproject.toml", "tool.ruff"),
+            )
+        ],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.95,
+        priority=20,
+    ),
+    Rule(
+        name="Black",
+        matchers=[HasTomlSection("pyproject.toml", "tool.black")],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.9,  # Black is often run with zero config, so this only
+        # catches projects that explicitly configured it; no false positives.
+        priority=20,
+    ),
+    Rule(
+        name="mypy",
+        matchers=[
+            AnyOf(
+                HasFilename("mypy.ini", ".mypy.ini"),
+                HasTomlSection("pyproject.toml", "tool.mypy"),
+            )
+        ],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        name="isort",
+        matchers=[
+            AnyOf(
+                HasFilename(".isort.cfg"),
+                HasTomlSection("pyproject.toml", "tool.isort"),
+            )
+        ],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.85,
+        priority=20,
+    ),
+    Rule(
+        # .flake8 is an exclusive Flake8 config filename.
+        name="Flake8",
+        matchers=[HasFilename(".flake8")],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # .pylintrc is an exclusive Pylint config filename.
+        name="Pylint",
+        matchers=[HasFilename(".pylintrc")],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Sphinx",
+        matchers=[HasDependency("sphinx")],
+        category=RuleCategory.DOCUMENTATION,
+        confidence=0.85,
+        priority=20,
+    ),
+    # JavaScript / TypeScript: frameworks with unique config files
+    # These frameworks each generate one project-scaffolding config file
+    # that no other tool produces, mirroring the existing Next.js/Nuxt
+    # pattern already in this file.
+    Rule(
+        # .svelte single-file components are exclusive to Svelte.
+        name="Svelte",
+        matchers=[HasExtension(".svelte")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="SvelteKit",
+        matchers=[HasFileGlob("svelte.config.*")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="Remix",
+        matchers=[HasFileGlob("remix.config.*")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="Gatsby",
+        matchers=[HasFileGlob("gatsby-config.*")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        # .astro components are exclusive to the Astro framework.
+        name="Astro",
+        matchers=[HasExtension(".astro")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        # deno.json(c) is the Deno project configuration, exclusive to Deno.
+        name="Deno",
+        matchers=[HasFilename("deno.json", "deno.jsonc")],
+        category=RuleCategory.LANGUAGE,
+        confidence=1.0,
+        priority=10,
+    ),
+    # JavaScript / TypeScript: backend frameworks & libraries (dependency)
+    Rule(
+        name="Express",
+        matchers=[HasDependency("express")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        # "@nestjs/core" is an npm-scoped package name unique to NestJS.
+        name="NestJS",
+        matchers=[HasDependency("@nestjs/core")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="Redux",
+        matchers=[HasDependency("redux")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,
+        priority=30,
+    ),
+    Rule(
+        name="GraphQL",
+        matchers=[HasDependency("graphql")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,
+        priority=20,
+    ),
+    # JavaScript / TypeScript: testing frameworks (dependency)
+    Rule(
+        name="Jest",
+        matchers=[HasDependency("jest")],
+        category=RuleCategory.TESTING,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="Mocha",
+        matchers=[HasDependency("mocha")],
+        category=RuleCategory.TESTING,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Cypress",
+        matchers=[HasDependency("cypress")],
+        category=RuleCategory.TESTING,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        # Playwright's package can be either "playwright" or the scoped
+        # "@playwright/test" test-runner package; either is definitive.
+        name="Playwright",
+        matchers=[
+            AnyOf(HasDependency("playwright"), HasDependency("@playwright/test"))
+        ],
+        category=RuleCategory.TESTING,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Vitest",
+        matchers=[HasDependency("vitest")],
+        category=RuleCategory.TESTING,
+        confidence=0.95,
+        priority=30,
+    ),
+    # JavaScript / TypeScript & general: monorepo tooling and static
+    # analysis. Config filenames here are each exclusive to one tool.
+    Rule(
+        # "workspaces" is a top-level package.json key exclusive to npm/Yarn
+        # monorepo workspace configuration.
+        name="npm/Yarn Workspaces",
+        matchers=[HasJsonKey("package.json", "workspaces")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        name="Nx",
+        matchers=[HasFilename("nx.json")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Turborepo",
+        matchers=[HasFilename("turbo.json")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Lerna",
+        matchers=[HasFilename("lerna.json")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Rush",
+        matchers=[HasFilename("rush.json")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # Matches .eslintrc, .eslintrc.js/.json/.yml (legacy) as well as
+        # eslint.config.* (flat config, ESLint 9+). Both forms are
+        # exclusive to ESLint.
+        name="ESLint",
+        matchers=[AnyOf(HasFileGlob(".eslintrc*"), HasFileGlob("eslint.config.*"))],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Prettier",
+        matchers=[AnyOf(HasFileGlob(".prettierrc*"), HasFileGlob("prettier.config.*"))],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.95,
+        priority=20,
+    ),
+    Rule(
+        name="Stylelint",
+        matchers=[HasFileGlob(".stylelintrc*")],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.95,
+        priority=20,
+    ),
+    # Package manager lockfiles (JS ecosystem)
+    # A lockfile is written by exactly one tool; its mere presence is
+    # unambiguous, unlike package.json which all of these tools share.
+    Rule(
+        name="Yarn",
+        matchers=[HasFilename("yarn.lock")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="npm",
+        matchers=[HasFilename("package-lock.json")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="pnpm",
+        matchers=[HasFilename("pnpm-lock.yaml")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Bun",
+        matchers=[HasFilename("bun.lockb", "bun.lock")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    # Java / JVM: frameworks and testing
+    # Neither Maven's pom.xml nor Gradle's build.gradle(.kts) is parseable
+    # by the generic DEPENDENCY_PARSERS registry (they're XML/Groovy/Kotlin
+    # DSL, not JSON/TOML), so these use HasFileContent to look for the
+    # distinctive artifact/dependency identifier string instead. Both are
+    # fixed, well-known filenames, so this is still a targeted, not a
+    # blanket, substring search.
+    Rule(
+        name="JUnit",
+        matchers=[
+            AnyOf(
+                HasFileContent("pom.xml", "junit"),
+                HasFileContent("build.gradle", "junit"),
+                HasFileContent("build.gradle.kts", "junit"),
+            )
+        ],
+        category=RuleCategory.TESTING,
+        confidence=0.85,
+        priority=30,
+    ),
+    Rule(
+        # "quarkus" as a Maven/Gradle artifact/group prefix is exclusive to
+        # the Quarkus framework.
+        name="Quarkus",
+        matchers=[
+            AnyOf(
+                HasFileContent("pom.xml", "quarkus"),
+                HasFileContent("build.gradle", "quarkus"),
+                HasFileContent("build.gradle.kts", "quarkus"),
+            )
+        ],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,
+        priority=30,
+    ),
+    Rule(
+        name="Micronaut",
+        matchers=[
+            AnyOf(
+                HasFileContent("pom.xml", "micronaut"),
+                HasFileContent("build.gradle", "micronaut"),
+                HasFileContent("build.gradle.kts", "micronaut"),
+            )
+        ],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,
+        priority=30,
+    ),
+    Rule(
+        # checkstyle.xml is Checkstyle's exclusive rule-configuration file.
+        name="Checkstyle",
+        matchers=[HasFilename("checkstyle.xml")],
+        category=RuleCategory.STATIC_ANALYSIS,
+        confidence=0.9,
+        priority=20,
+    ),
+    # C / C++: package managers and alternative build systems
+    Rule(
+        name="Conan",
+        matchers=[HasFilename("conanfile.txt", "conanfile.py")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="vcpkg",
+        matchers=[HasFilename("vcpkg.json")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Bazel",
+        matchers=[HasFilename("WORKSPACE", "WORKSPACE.bazel", "BUILD.bazel")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # build.ninja is a Ninja-generated build file; hand-written Ninja
+        # projects use the same filename, so either way it's Ninja.
+        name="Ninja",
+        matchers=[HasFilename("build.ninja")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Meson",
+        matchers=[HasFilename("meson.build")],
+        category=RuleCategory.BUILD_SYSTEM,
+        confidence=1.0,
+        priority=20,
+    ),
+    # Embedded / IoT
+    Rule(
+        # west.yml is the manifest for Zephyr RTOS's West meta-tool,
+        # exclusive to Zephyr-based projects.
+        name="Zephyr RTOS",
+        matchers=[HasFilename("west.yml")],
+        category=RuleCategory.EMBEDDED,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # mbed_app.json is the Mbed OS application configuration file.
+        name="Mbed OS",
+        matchers=[HasFilename("mbed_app.json")],
+        category=RuleCategory.EMBEDDED,
+        confidence=1.0,
+        priority=20,
+    ),
+    # DevOps: provisioning & configuration management
+    Rule(
+        name="Vagrant",
+        matchers=[HasFilename("Vagrantfile")],
+        category=RuleCategory.DEVOPS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # *.pkr.hcl is HashiCorp Packer's exclusive template extension.
+        # HasFileGlob (not HasExtension) is required here: HasExtension only
+        # inspects the text after the final dot, which would see ".hcl" and
+        # miss the "pkr" that makes this Packer-specific.
+        name="Packer",
+        matchers=[HasFileGlob("*.pkr.hcl")],
+        category=RuleCategory.DEVOPS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # Puppetfile is Puppet's exclusive module-dependency manifest.
+        # (Note: the .pp source extension is intentionally not used here,
+        # as it collides with Pascal source files.)
+        name="Puppet",
+        matchers=[HasFilename("Puppetfile")],
+        category=RuleCategory.DEVOPS,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # metadata.rb is Chef's cookbook descriptor, required in every Chef
+        # cookbook and not used by any other tool.
+        name="Chef",
+        matchers=[HasFilename("metadata.rb")],
+        category=RuleCategory.DEVOPS,
+        confidence=0.85,
+        priority=20,
+    ),
+    # Cloud: IaC and serverless frameworks with unique project files
+    Rule(
+        name="Pulumi",
+        matchers=[HasFilename("Pulumi.yaml", "Pulumi.yml")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # cdk.json is generated by `cdk init` and required for every AWS CDK
+        # app; no other tool uses this filename.
+        name="AWS CDK",
+        matchers=[HasFilename("cdk.json")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Serverless Framework",
+        matchers=[HasFilename("serverless.yml", "serverless.yaml")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # samconfig.toml is written exclusively by `sam deploy --guided` /
+        # `sam init` for AWS Serverless Application Model projects.
+        name="AWS SAM",
+        matchers=[HasFilename("samconfig.toml")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Google Cloud Build",
+        matchers=[HasFilename("cloudbuild.yaml", "cloudbuild.yml")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # .bicep is Azure Bicep's exclusive source extension.
+        name="Azure Bicep",
+        matchers=[HasExtension(".bicep")],
+        category=RuleCategory.CLOUD,
+        confidence=1.0,
+        priority=20,
+    ),
+    # Databases & ORMs
+    Rule(
+        name="Flyway",
+        matchers=[HasFilename("flyway.conf", "flyway.toml")],
+        category=RuleCategory.DATABASE,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="Liquibase",
+        matchers=[HasFilename("liquibase.properties")],
+        category=RuleCategory.DATABASE,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="TypeORM",
+        matchers=[HasDependency("typeorm")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Sequelize",
+        matchers=[HasDependency("sequelize")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Mongoose",
+        matchers=[HasDependency("mongoose")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Prisma ORM",
+        matchers=[HasDependency("@prisma/client")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    # ML / AI
+    # A declared dependency on one of these packages is the standard,
+    # deterministic way a static scan can identify ML/AI framework usage.
+    Rule(
+        name="TensorFlow",
+        matchers=[HasDependency("tensorflow")],
+        category=RuleCategory.ML_AI,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        # PyPI/import name for PyTorch is "torch".
+        name="PyTorch",
+        matchers=[HasDependency("torch")],
+        category=RuleCategory.ML_AI,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="scikit-learn",
+        matchers=[HasDependency("scikit-learn")],
+        category=RuleCategory.ML_AI,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="Keras",
+        matchers=[HasDependency("keras")],
+        category=RuleCategory.ML_AI,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="XGBoost",
+        matchers=[HasDependency("xgboost")],
+        category=RuleCategory.ML_AI,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="LangChain",
+        matchers=[HasDependency("langchain")],
+        category=RuleCategory.ML_AI,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        # "transformers" is the exact Hugging Face package name; slightly
+        # lower confidence than other ML entries since it's a more generic
+        # English word than e.g. "tensorflow" or "xgboost".
+        name="Hugging Face Transformers",
+        matchers=[HasDependency("transformers")],
+        category=RuleCategory.ML_AI,
+        confidence=0.8,
+        priority=30,
+    ),
+    Rule(
+        name="OpenAI SDK",
+        matchers=[HasDependency("openai")],
+        category=RuleCategory.ML_AI,
+        confidence=0.85,
+        priority=30,
+    ),
+    # Data Science
+    Rule(
+        name="pandas",
+        matchers=[HasDependency("pandas")],
+        category=RuleCategory.DATA_SCIENCE,
+        confidence=0.95,
+        priority=20,
+    ),
+    Rule(
+        name="NumPy",
+        matchers=[HasDependency("numpy")],
+        category=RuleCategory.DATA_SCIENCE,
+        confidence=0.95,
+        priority=20,
+    ),
+    Rule(
+        name="Matplotlib",
+        matchers=[HasDependency("matplotlib")],
+        category=RuleCategory.DATA_SCIENCE,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        # .R is the R language source extension.
+        name="R",
+        matchers=[HasExtension(".r")],
+        category=RuleCategory.LANGUAGE,
+        confidence=0.9,
+        priority=10,
+    ),
+    Rule(
+        # .Rmd is the R Markdown extension, exclusive to R's literate
+        # programming/reporting toolchain.
+        name="R Markdown",
+        matchers=[HasExtension(".rmd")],
+        category=RuleCategory.DATA_SCIENCE,
+        confidence=0.95,
+        priority=20,
+    ),
+    # Documentation tools
+    Rule(
+        name="MkDocs",
+        matchers=[HasFilename("mkdocs.yml", "mkdocs.yaml")],
+        category=RuleCategory.DOCUMENTATION,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Docusaurus",
+        matchers=[HasFileGlob("docusaurus.config.*")],
+        category=RuleCategory.DOCUMENTATION,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Read the Docs",
+        matchers=[HasFilename(".readthedocs.yaml", ".readthedocs.yml")],
+        category=RuleCategory.DOCUMENTATION,
+        confidence=1.0,
+        priority=20,
+    ),
+    # Cloud / Containers: additional orchestration tooling
+    Rule(
+        name="Skaffold",
+        matchers=[HasFilename("skaffold.yaml", "skaffold.yml")],
+        category=RuleCategory.ORCHESTRATION,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Kustomize",
+        matchers=[HasFilename("kustomization.yaml", "kustomization.yml")],
+        category=RuleCategory.ORCHESTRATION,
+        confidence=1.0,
+        priority=20,
+    ),
+    # CI/CD: additional providers
+    Rule(
+        name="Buildkite",
+        matchers=[HasDirectory(".buildkite")],
+        category=RuleCategory.CI_CD,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        name="Drone CI",
+        matchers=[HasFilename(".drone.yml")],
+        category=RuleCategory.CI_CD,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Bitbucket Pipelines",
+        matchers=[HasFilename("bitbucket-pipelines.yml")],
+        category=RuleCategory.CI_CD,
+        confidence=1.0,
+        priority=20,
+    ),
+    # Mobile: additional platforms & package managers
+    Rule(
+        # project.pbxproj is Xcode's project descriptor, generated for every
+        # iOS/macOS Xcode project regardless of the enclosing .xcodeproj
+        # bundle's name; matched here by filename, not directory, since
+        # the bundle name varies per app.
+        name="Xcode Project",
+        matchers=[HasFileGlob("*.pbxproj")],
+        category=RuleCategory.MOBILE,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # Podfile is CocoaPods' exclusive dependency manifest for iOS/macOS.
+        name="CocoaPods",
+        matchers=[HasFilename("Podfile")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        # Package.swift is Swift Package Manager's exclusive manifest.
+        name="Swift Package Manager",
+        matchers=[HasFilename("Package.swift")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    Rule(
+        name="Ionic",
+        matchers=[HasFilename("ionic.config.json")],
+        category=RuleCategory.MOBILE,
+        confidence=1.0,
+        priority=30,
+    ),
+    Rule(
+        name="NuGet",
+        matchers=[HasFilename("nuget.config", "packages.config")],
+        category=RuleCategory.PACKAGE_MANAGER,
+        confidence=1.0,
+        priority=20,
+    ),
+    # PHP: frameworks (dependency)
+    Rule(
+        # "symfony/framework-bundle" is the exact Composer package name for
+        # the core Symfony framework bundle.
+        name="Symfony",
+        matchers=[HasDependency("symfony/framework-bundle")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="Drupal",
+        matchers=[HasDependency("drupal/core")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        # WordPress ships wp-config.php (or the wp-config-sample.php
+        # template it's copied from) at the project root; both names are
+        # exclusive to WordPress installs.
+        name="WordPress",
+        matchers=[HasFilename("wp-config.php", "wp-config-sample.php")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.95,
+        priority=30,
+    ),
+    Rule(
+        name="PHPUnit",
+        matchers=[HasDependency("phpunit/phpunit")],
+        category=RuleCategory.TESTING,
+        confidence=0.9,
+        priority=30,
+    ),
+    # Ruby: frameworks & testing (dependency)
+    Rule(
+        name="Sinatra",
+        matchers=[HasDependency("sinatra")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="RSpec",
+        matchers=[HasDependency("rspec")],
+        category=RuleCategory.TESTING,
+        confidence=0.9,
+        priority=30,
+    ),
+    # Go: frameworks & ORMs (dependency; short module names via go.mod)
+    Rule(
+        name="Gin",
+        matchers=[HasDependency("gin")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Echo",
+        matchers=[HasDependency("echo")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,  # "echo" is a common word; still a specific module short-name match
+        priority=30,
+    ),
+    Rule(
+        name="Fiber",
+        matchers=[HasDependency("fiber")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="GORM",
+        matchers=[HasDependency("gorm")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
+        priority=30,
+    ),
+    # Rust: frameworks & libraries (dependency via Cargo.toml)
+    Rule(
+        name="Actix Web",
+        matchers=[HasDependency("actix-web")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=30,
+    ),
+    Rule(
+        name="Rocket",
+        matchers=[HasDependency("rocket")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.85,
+        priority=30,
+    ),
+    Rule(
+        name="Tokio",
+        matchers=[HasDependency("tokio")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        name="Serde",
+        matchers=[HasDependency("serde")],
+        category=RuleCategory.FRAMEWORK,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
+        name="Diesel",
+        matchers=[HasDependency("diesel")],
+        category=RuleCategory.DATABASE,
+        confidence=0.9,
         priority=30,
     ),
 ]

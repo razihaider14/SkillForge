@@ -111,7 +111,7 @@ class TestAnalyzeEndpointWithContent:
         mock_repos.return_value = [FAKE_REPO]
         mock_tree.return_value = FAKE_TREE
         mock_content.return_value = {
-            "requirements.txt": "flask\n"
+            "requirements.txt": "some-internal-package\n"
         }  # no extra detection
 
         with_content = client.get("/analyze/octocat?include_content=true").json()
