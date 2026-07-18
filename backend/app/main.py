@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.analyzer.analyzer import analyze_user_repositories
 from app.config import settings
@@ -10,6 +11,18 @@ from app.github.client import (
 )
 
 app = FastAPI(title=settings.APP_NAME)
+
+# Allows the SkillForge frontend (a separate origin: localhost:3000 in dev,
+# a Vercel domain in production) to call this API from a browser. Every
+# endpoint here is a read (GET), so the allowed method list is deliberately
+# narrow. See app.config.Settings.FRONTEND_ORIGINS for how the allowed
+# origin(s) are configured.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.FRONTEND_ORIGINS,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 
 def _handle_github_exceptions(exc: Exception) -> None:
