@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CircleCheck, FolderX, ListChecks, Sparkles, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CategoryFilter } from "@/components/skills/category-filter";
 import { RecommendationsList } from "@/components/skills/recommendations-list";
 import { SkillsDashboardSkeleton } from "@/components/skills/skills-dashboard-skeleton";
@@ -87,6 +89,15 @@ export function SkillsDashboard({ username }: SkillsDashboardProps) {
         description={`${data.repository_count} ${
           data.repository_count === 1 ? "repository" : "repositories"
         } analyzed`}
+        actions={
+          data.repository_count > 0 ? (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/analyze/${encodeURIComponent(username)}/repos`}>
+                View repositories
+              </Link>
+            </Button>
+          ) : undefined
+        }
       />
 
       {data.repository_count === 0 ? (
