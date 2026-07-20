@@ -11,8 +11,10 @@ import { RepoDetailHeader } from "@/components/repos/repo-detail-header";
 import { RepoSkillBreakdown } from "@/components/repos/repo-skill-breakdown";
 import { MetadataPanel } from "@/components/repos/metadata-panel";
 import { TechBadgeList } from "@/components/repos/tech-badge-list";
+import { useDeepScan } from "@/hooks/use-deep-scan";
 import { ApiError } from "@/lib/api/errors";
 import { useAnalysis, useRepos } from "@/lib/query/hooks";
+import { withDeepScan } from "@/lib/with-deep-scan";
 
 interface RepoDetailProps {
   username: string;
@@ -35,7 +37,8 @@ function RepoDetailSkeleton() {
 }
 
 export function RepoDetail({ username, repoName }: RepoDetailProps) {
-  const { data, error, isLoading, refetch } = useAnalysis(username);
+  const [deepScan] = useDeepScan();
+  const { data, error, isLoading, refetch } = useAnalysis(username, deepScan);
   // Best-effort supplementary data — see RepoDetailHeader's docstring on
   // `description`. Deliberately NOT destructuring `error` from this one:
   // if the repos list fails to load, the page still works fine without a
@@ -80,7 +83,10 @@ export function RepoDetail({ username, repoName }: RepoDetailProps) {
           description={`${username}'s portfolio doesn't include a repository named "${repoName}".`}
           action={
             <Link
-              href={`/analyze/${encodeURIComponent(username)}/repos`}
+              href={withDeepScan(
+                `/analyze/${encodeURIComponent(username)}/repos`,
+                deepScan,
+              )}
               className="text-primary text-sm underline-offset-4 hover:underline"
             >
               Back to all repositories
@@ -98,7 +104,7 @@ export function RepoDetail({ username, repoName }: RepoDetailProps) {
   return (
     <div className="flex flex-col gap-8">
       <Link
-        href={`/analyze/${encodeURIComponent(username)}/repos`}
+        href={withDeepScan(`/analyze/${encodeURIComponent(username)}/repos`, deepScan)}
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-sm"
       >
         <ArrowLeft aria-hidden="true" className="size-3.5" />

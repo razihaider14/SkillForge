@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { http } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { server } from "@/test/msw/server";
 import { backendErrorResponse } from "@/test/msw/handlers";
 import { shouldRetryQuery } from "@/lib/query/queryClient";
@@ -28,7 +29,9 @@ function renderDetail(username = "octocat", repoName = REPO_NAME) {
   });
   return render(
     <QueryClientProvider client={client}>
-      <RepoDetail username={username} repoName={repoName} />
+      <NuqsTestingAdapter>
+        <RepoDetail username={username} repoName={repoName} />
+      </NuqsTestingAdapter>
     </QueryClientProvider>,
   );
 }

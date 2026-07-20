@@ -12,10 +12,13 @@ import { SkillsGrid } from "@/components/skills/skills-grid";
 import { StrengthsList } from "@/components/skills/strengths-list";
 import { WeaknessesList } from "@/components/skills/weaknesses-list";
 import { AnalyzeErrorState } from "@/components/analyze/analyze-error-state";
+import { ProfileHeader } from "@/components/analyze/profile-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { useDeepScan } from "@/hooks/use-deep-scan";
 import { ApiError } from "@/lib/api/errors";
 import { useSkills } from "@/lib/query/hooks";
+import { withDeepScan } from "@/lib/with-deep-scan";
 import type { RuleCategory } from "@/types/category";
 
 interface SkillsDashboardProps {
@@ -43,7 +46,8 @@ function DashboardStat({
 }
 
 export function SkillsDashboard({ username }: SkillsDashboardProps) {
-  const { data, error, isLoading, refetch } = useSkills(username);
+  const [deepScan, setDeepScan] = useDeepScan();
+  const { data, error, isLoading, refetch } = useSkills(username, deepScan);
   const [selectedCategory, setSelectedCategory] =
     React.useState<RuleCategory | null>(null);
 
@@ -84,15 +88,20 @@ export function SkillsDashboard({ username }: SkillsDashboardProps) {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader
-        title={username}
-        description={`${data.repository_count} ${
-          data.repository_count === 1 ? "repository" : "repositories"
-        } analyzed`}
+      <ProfileHeader
+        username={username}
+        repositoryCount={data.repository_count}
+        deepScan={deepScan}
+        onDeepScanChange={setDeepScan}
         actions={
           data.repository_count > 0 ? (
             <Button asChild variant="outline" size="sm">
-              <Link href={`/analyze/${encodeURIComponent(username)}/repos`}>
+              <Link
+                href={withDeepScan(
+                  `/analyze/${encodeURIComponent(username)}/repos`,
+                  deepScan,
+                )}
+              >
                 View repositories
               </Link>
             </Button>

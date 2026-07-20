@@ -7,10 +7,16 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
 }));
 
+const startProgressMock = vi.fn();
+vi.mock("@/components/providers/navigation-progress", () => ({
+  useNavigationProgress: () => ({ start: startProgressMock }),
+}));
+
 const { UsernameForm } = await import("@/components/analyze/username-form");
 
 beforeEach(() => {
   pushMock.mockReset();
+  startProgressMock.mockReset();
 });
 
 describe("UsernameForm", () => {
@@ -22,6 +28,24 @@ describe("UsernameForm", () => {
     await user.click(screen.getByRole("button", { name: "Analyze" }));
 
     expect(pushMock).toHaveBeenCalledWith("/analyze/octocat");
+  });
+
+  it("starts the navigation progress bar on successful submit", async () => {
+    const user = userEvent.setup();
+    render(<UsernameForm />);
+
+    await user.type(screen.getByLabelText("GitHub username"), "octocat{Enter}");
+
+    expect(startProgressMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not start the navigation progress bar on a failed (invalid) submit", async () => {
+    const user = userEvent.setup();
+    render(<UsernameForm />);
+
+    await user.click(screen.getByRole("button", { name: "Analyze" }));
+
+    expect(startProgressMock).not.toHaveBeenCalled();
   });
 
   it("submits on Enter without clicking the button", async () => {

@@ -8,9 +8,16 @@ interface RepoListProps {
   username: string;
   /** True when the portfolio has repositories overall, but the current search/filter matched none. */
   isFiltered?: boolean;
+  /** Preserved in each RepoListItem's link to the repo detail page — see src/lib/with-deep-scan.ts. */
+  deepScan?: boolean;
 }
 
-export function RepoList({ repositories, username, isFiltered = false }: RepoListProps) {
+export function RepoList({
+  repositories,
+  username,
+  isFiltered = false,
+  deepScan = false,
+}: RepoListProps) {
   if (repositories.length === 0) {
     return (
       <EmptyState
@@ -28,7 +35,7 @@ export function RepoList({ repositories, username, isFiltered = false }: RepoLis
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {repositories.map((repo) => (
-        <RepoListItem key={repo.name} repo={repo} username={username} />
+        <RepoListItem key={repo.name} repo={repo} username={username} deepScan={deepScan} />
       ))}
     </div>
   );

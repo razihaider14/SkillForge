@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { server } from "@/test/msw/server";
 import { backendErrorResponse } from "@/test/msw/handlers";
 import { shouldRetryQuery } from "@/lib/query/queryClient";
@@ -20,7 +21,10 @@ const { SkillsDashboard } = await import(
 
 const API_BASE = "http://localhost:8000";
 
-function renderDashboard(username = "octocat") {
+function renderDashboard(
+  username = "octocat",
+  { searchParams = "" }: { searchParams?: string } = {},
+) {
   const client = new QueryClient({
     defaultOptions: {
       queries: { retry: shouldRetryQuery, retryDelay: 0, gcTime: 0 },
@@ -28,7 +32,9 @@ function renderDashboard(username = "octocat") {
   });
   return render(
     <QueryClientProvider client={client}>
-      <SkillsDashboard username={username} />
+      <NuqsTestingAdapter searchParams={searchParams} hasMemory>
+        <SkillsDashboard username={username} />
+      </NuqsTestingAdapter>
     </QueryClientProvider>,
   );
 }
@@ -180,5 +186,83 @@ describe("SkillsDashboard integration (real fetch through MSW)", () => {
     // The stat grid / section headings shouldn't render alongside the
     // zero-repositories empty state.
     expect(screen.queryByText(/All skills/)).not.toBeInTheDocument();
+  });
+});
+
+describe("SkillsDashboard Deep Scan integration", () => {
+  it("defaults to include_content=false", async () => {
+    let capturedParam: string | null = null;
+    server.use(
+      http.get(`${API_BASE}/skills/:username`, ({ request }) => {
+        capturedParam = new URL(request.url).searchParams.get("include_content");
+        return HttpResponse.json(sampleSkillsResponse);
+      }),
+    );
+
+    renderDashboard("octocat");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "octocat" })).toBeInTheDocument(),
+    );
+    expect(capturedParam).toBe("false");
+  });
+
+  it("reads include_content=true from the URL and requests deep-scanned data", async () => {
+    let capturedParam: string | null = null;
+    server.use(
+      http.get(`${API_BASE}/skills/:username`, ({ request }) => {
+        capturedParam = new URL(request.url).searchParams.get("include_content");
+        return HttpResponse.json(sampleSkillsResponse);
+      }),
+    );
+
+    renderDashboard("octocat", { searchParams: "include_content=true" });
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "octocat" })).toBeInTheDocument(),
+    );
+    expect(capturedParam).toBe("true");
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("toggling Deep Scan on refetches with include_content=true using the existing query key", async () => {
+    const requestedParams: (string | null)[] = [];
+    server.use(
+      http.get(`${API_BASE}/skills/:username`, ({ request }) => {
+        requestedParams.push(new URL(request.url).searchParams.get("include_content"));
+        return HttpResponse.json(sampleSkillsResponse);
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderDashboard("octocat");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "octocat" })).toBeInTheDocument(),
+    );
+    expect(requestedParams).toEqual(["false"]);
+
+    await user.click(screen.getByRole("switch"));
+
+    await waitFor(() => expect(requestedParams).toEqual(["false", "true"]));
+    expect(screen.getByRole("switch")).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("preserves the Deep Scan selection in the 'View repositories' link", async () => {
+    const user = userEvent.setup();
+    renderDashboard("octocat");
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "octocat" })).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByRole("switch"));
+
+    await waitFor(() =>
+      expect(screen.getByRole("link", { name: "View repositories" })).toHaveAttribute(
+        "href",
+        "/analyze/octocat/repos?include_content=true",
+      ),
+    );
   });
 });

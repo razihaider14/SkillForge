@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigationProgress } from "@/components/providers/navigation-progress";
 import { githubUsernameError } from "@/lib/github-username";
 import { cn } from "@/lib/utils";
 
@@ -25,8 +26,10 @@ export function UsernameForm({
   defaultValue = "",
 }: UsernameFormProps) {
   const router = useRouter();
+  const { start } = useNavigationProgress();
   const [value, setValue] = React.useState(defaultValue);
   const [error, setError] = React.useState<string | null>(null);
+  const inputId = React.useId();
   const errorId = React.useId();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -40,6 +43,7 @@ export function UsernameForm({
     }
 
     setError(null);
+    start();
     router.push(`/analyze/${encodeURIComponent(trimmed)}`);
   }
 
@@ -51,11 +55,11 @@ export function UsernameForm({
     >
       <div className="flex gap-2">
         <div className="flex-1">
-          <label htmlFor="github-username" className="sr-only">
+          <label htmlFor={inputId} className="sr-only">
             GitHub username
           </label>
           <Input
-            id="github-username"
+            id={inputId}
             name="username"
             placeholder="e.g. octocat"
             autoComplete="off"

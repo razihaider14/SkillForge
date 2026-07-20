@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { server } from "@/test/msw/server";
 import { backendErrorResponse } from "@/test/msw/handlers";
 import { shouldRetryQuery } from "@/lib/query/queryClient";
@@ -28,7 +29,9 @@ function renderExplorer(username = "octocat") {
   });
   return render(
     <QueryClientProvider client={client}>
-      <RepositoryExplorer username={username} />
+      <NuqsTestingAdapter>
+        <RepositoryExplorer username={username} />
+      </NuqsTestingAdapter>
     </QueryClientProvider>,
   );
 }

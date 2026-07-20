@@ -2,16 +2,18 @@ import Link from "next/link";
 import { GitFork, ListChecks, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TechBadgeList } from "@/components/repos/tech-badge-list";
+import { withDeepScan } from "@/lib/with-deep-scan";
 import type { RepositoryDetail } from "@/types/repository";
 
 interface RepoListItemProps {
   repo: RepositoryDetail;
   username: string;
+  deepScan?: boolean;
 }
 
 const TECH_BADGE_LIMIT = 5;
 
-export function RepoListItem({ repo, username }: RepoListItemProps) {
+export function RepoListItem({ repo, username, deepScan = false }: RepoListItemProps) {
   const { stars, forks } = repo.metadata.maturity;
 
   return (
@@ -19,7 +21,10 @@ export function RepoListItem({ repo, username }: RepoListItemProps) {
       <CardHeader className="px-5">
         <CardTitle className="text-base">
           <Link
-            href={`/analyze/${encodeURIComponent(username)}/repos/${encodeURIComponent(repo.name)}`}
+            href={withDeepScan(
+              `/analyze/${encodeURIComponent(username)}/repos/${encodeURIComponent(repo.name)}`,
+              deepScan,
+            )}
             className="hover:text-primary underline-offset-4 hover:underline"
           >
             {repo.name}

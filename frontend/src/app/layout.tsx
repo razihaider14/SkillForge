@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
-// Deliberately not using next/font/google here yet: this environment's
-// build sandbox can't reach Google Fonts' CDN, and more importantly, real
-// typeface selection is a Phase 4 design decision (see the frontend-design
-// guidance the Landing/About build follows), not a Phase 0 scaffold one.
-// `font-sans`/`font-mono` below fall back to the system font stack until
-// then.
+// GeistSans/GeistMono ship their font files inside the `geist` npm package
+// itself, so this works without reaching Google Fonts' CDN (which this
+// build environment's network policy blocks) — unlike next/font/google,
+// there's no runtime or build-time fetch involved.
 
 export const metadata: Metadata = {
   title: "SkillForge",
@@ -25,8 +27,16 @@ export default function RootLayout({
     // `dark`/`light` class on <html> before React hydrates, which would
     // otherwise cause a (harmless but noisy) hydration warning.
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <Providers>{children}</Providers>
+      <body
+        className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
+      >
+        <Providers>
+          <div className="flex min-h-svh flex-col">
+            <Header />
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );

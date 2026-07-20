@@ -1,5 +1,7 @@
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { NavigationProgressProvider } from "@/components/providers/navigation-progress";
 
 /**
  * Composes every app-wide provider in one place. Add new global providers
@@ -14,7 +16,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <NuqsAdapter>
+          <NavigationProgressProvider>{children}</NavigationProgressProvider>
+        </NuqsAdapter>
+      </QueryProvider>
     </ThemeProvider>
   );
 }

@@ -125,14 +125,17 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* System font stack for now, real typeface selection is a Phase 4
-     design decision, not a Phase 0 scaffold one; see layout.tsx. */
+  /* Applied via GeistSans.variable/GeistMono.variable's className on <body>
+     in layout.tsx (the geist npm package, not next/font/google — see that
+     file's comment on why). Falls back to a system stack if, for any
+     reason, the variable isn't set (e.g. this file loaded before the body
+     className is present). */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
 
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -188,5 +191,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@keyframes nav-progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
   }
 }
