@@ -8,7 +8,7 @@ export function Header() {
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/75 sticky top-0 z-30 border-b backdrop-blur">
       <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight">
-          SkillForge
+          Portlio
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-6 sm:flex">

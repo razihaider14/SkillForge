@@ -14,7 +14,7 @@ describe("HeuristicsDisclaimer", () => {
     expect(screen.getByText(/continuously improving/i)).toBeInTheDocument();
   });
 
-  it("states SkillForge does not score developers", () => {
+  it("states Portlio does not score developers", () => {
     render(<HeuristicsDisclaimer />);
     expect(screen.getByText(/doesn't score developers/i)).toBeInTheDocument();
   });

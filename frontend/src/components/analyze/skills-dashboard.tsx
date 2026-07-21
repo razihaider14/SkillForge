@@ -113,7 +113,7 @@ export function SkillsDashboard({ username }: SkillsDashboardProps) {
         <EmptyState
           icon={FolderX}
           title="No public repositories"
-          description="This GitHub account has no public repositories for SkillForge to analyze."
+          description="This GitHub account has no public repositories for Portlio to analyze."
         />
       ) : (
         <>

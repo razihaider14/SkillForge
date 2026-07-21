@@ -33,7 +33,7 @@ function presentationFor(error: unknown): ErrorPresentation {
         icon: Clock,
         title: "GitHub rate limit exceeded",
         description:
-          "SkillForge has hit GitHub's API rate limit. This usually clears within an hour — try again shortly.",
+          "Portlio has hit GitHub's API rate limit. This usually clears within an hour, try again shortly.",
       };
     }
     if (error.isServiceUnavailable) {
@@ -41,15 +41,15 @@ function presentationFor(error: unknown): ErrorPresentation {
         icon: ServerCrash,
         title: "Backend unavailable",
         description:
-          "GitHub's API is temporarily unreachable from the SkillForge backend. Try again in a moment.",
+          "GitHub's API is temporarily unreachable from the Portlio backend. Try again in a moment.",
       };
     }
     if (error.isNetworkError) {
       return {
         icon: WifiOff,
-        title: "Can't reach SkillForge",
+        title: "Can't reach Portlio",
         description:
-          "Check your connection and that the SkillForge backend is running.",
+          "Check your connection and that the Portlio backend is running.",
       };
     }
   }

@@ -4,9 +4,9 @@ import { HeuristicsDisclaimer } from "@/components/about/heuristics-disclaimer";
 import { FAQSection } from "@/components/about/faq-section";
 
 export const metadata: Metadata = {
-  title: "About | SkillForge",
+  title: "About | Portlio",
   description:
-    "How SkillForge analyzes a GitHub portfolio: technology detection, metadata analysis, and aggregation into skills, strengths, weaknesses, and recommendations.",
+    "How Portlio analyzes a GitHub portfolio: technology detection, metadata analysis, and aggregation into skills, strengths, weaknesses, and recommendations.",
 };
 
 export default function AboutPage() {
@@ -14,10 +14,10 @@ export default function AboutPage() {
     <main className="mx-auto flex max-w-3xl flex-col gap-12 px-6 py-16">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold tracking-tight">
-          About SkillForge
+          About Portlio
         </h1>
         <p className="text-muted-foreground">
-          SkillForge doesn&apos;t score developers. It identifies what a
+          Portlio doesn&apos;t score developers. It identifies what a
           public portfolio demonstrates and provides evidence-based
           recommendations.
         </p>

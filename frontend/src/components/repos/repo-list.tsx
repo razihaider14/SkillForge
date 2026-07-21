@@ -26,7 +26,7 @@ export function RepoList({
         description={
           isFiltered
             ? "Try a different search term or technology filter, or clear the filters to see everything."
-            : "This GitHub account has no public repositories for SkillForge to analyze."
+            : "This GitHub account has no public repositories for Portlio to analyze."
         }
       />
     );

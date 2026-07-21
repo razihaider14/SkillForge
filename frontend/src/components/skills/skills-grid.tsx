@@ -18,7 +18,7 @@ export function SkillsGrid({ skills, isFiltered = false }: SkillsGridProps) {
         description={
           isFiltered
             ? "Try a different category, or clear the filter to see everything."
-            : "SkillForge didn't detect any technologies in this portfolio's repositories."
+            : "Portlio didn't detect any technologies in this portfolio's repositories."
         }
       />
     );

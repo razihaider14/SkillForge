@@ -10,7 +10,7 @@ export async function generateMetadata({
 }: RepoDetailPageProps): Promise<Metadata> {
   const { username, repoName } = await params;
   return {
-    title: `${repoName} | ${username} | SkillForge`,
+    title: `${repoName} | ${username} | Portlio`,
     description: `Technologies, metadata, and detected skills for ${username}/${repoName}.`,
   };
 }

@@ -20,7 +20,7 @@ export function RepoSkillBreakdown({ skills, repoName }: RepoSkillBreakdownProps
       <EmptyState
         icon={SearchX}
         title="No skills detected in this repository"
-        description={`SkillForge didn't detect any technologies in ${repoName}.`}
+        description={`Portlio didn't detect any technologies in ${repoName}.`}
       />
     );
   }

@@ -10,7 +10,7 @@ export async function generateMetadata({
 }: AnalyzeUserPageProps): Promise<Metadata> {
   const { username } = await params;
   return {
-    title: `${username}'s skills | SkillForge`,
+    title: `${username}'s skills | Portlio`,
     description: `Detected skills, strengths, weaknesses, and recommendations for ${username}'s GitHub portfolio.`,
   };
 }

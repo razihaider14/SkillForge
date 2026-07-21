@@ -39,7 +39,7 @@ export function FeatureCards() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16">
       <h2 className="mb-8 text-center text-2xl font-semibold tracking-tight">
-        What SkillForge looks at
+        What Portlio looks at
       </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((feature) => (

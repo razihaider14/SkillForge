@@ -33,7 +33,7 @@ describe("AnalyzeErrorState", () => {
         error={new ApiError("offline", { status: 0, isNetworkError: true })}
       />,
     );
-    expect(screen.getByText("Can't reach SkillForge")).toBeInTheDocument();
+    expect(screen.getByText("Can't reach Portlio")).toBeInTheDocument();
   });
 
   it("falls back to a generic message for a non-ApiError exception", () => {

@@ -8,8 +8,8 @@ export function HeuristicsDisclaimer() {
     >
       <Info aria-hidden="true" className="text-muted-foreground mt-0.5 size-5 shrink-0" />
       <p className="text-sm">
-        SkillForge doesn&apos;t score developers. Every skill, strength,
-        weakness, and recommendation here comes from heuristics — rule-based
+        Portlio doesn&apos;t score developers. Every skill, strength,
+        weakness, and recommendation here comes from heuristics, rule-based
         detection and scoring, not a machine-learning judgment of ability.
         Those heuristics are continuously improving, but they can still miss
         context a human reviewer would catch. Treat this as a starting point

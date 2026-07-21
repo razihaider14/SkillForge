@@ -12,7 +12,7 @@ import { Footer } from "@/components/layout/footer";
 // there's no runtime or build-time fetch involved.
 
 export const metadata: Metadata = {
-  title: "SkillForge",
+  title: "Portlio",
   description:
     "Evidence-based GitHub portfolio analysis: detected skills, strengths, weaknesses, and recommendations.",
 };

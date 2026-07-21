@@ -5,7 +5,7 @@ load_dotenv()
 
 
 class Settings:
-    APP_NAME: str = os.getenv("APP_NAME", "SkillForge")
+    APP_NAME: str = os.getenv("APP_NAME", "Portlio")
     ENV: str = os.getenv("ENV", "development")
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
@@ -15,7 +15,7 @@ class Settings:
     # browser (see app.main's CORSMiddleware setup). Defaults to the local
     # Next.js dev server so `npm run dev` works against a local backend with
     # zero configuration; production deployments must override this via the
-    # environment, e.g. FRONTEND_ORIGINS="https://skillforge.example.com".
+    # environment, e.g. FRONTEND_ORIGINS="https://portlio.example.com".
     FRONTEND_ORIGINS: list[str] = [
         origin.strip()
         for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",")

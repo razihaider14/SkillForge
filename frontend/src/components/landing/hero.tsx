@@ -7,8 +7,8 @@ export function Hero() {
         See what your GitHub portfolio actually demonstrates
       </h1>
       <p className="text-muted-foreground max-w-xl text-lg text-balance">
-        SkillForge reads a public GitHub portfolio and surfaces evidence-based
-        skills, strengths, weaknesses, and recommendations — no scores, no
+        Portlio reads a public GitHub portfolio and surfaces evidence-based
+        skills, strengths, weaknesses, and recommendations, no scores, no
         guesswork, just what the code shows.
       </p>
       <UsernameForm className="w-full max-w-md" />

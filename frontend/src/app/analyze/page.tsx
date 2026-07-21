@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { UsernameForm } from "@/components/analyze/username-form";
 
 export const metadata: Metadata = {
-  title: "Analyze a GitHub portfolio | SkillForge",
+  title: "Analyze a GitHub portfolio | Portlio",
   description:
     "Enter a GitHub username to see detected skills, strengths, weaknesses, and recommendations.",
 };

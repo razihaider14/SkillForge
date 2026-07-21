@@ -1,6 +1,6 @@
-# SkillForge Frontend
+# Portlio Frontend
 
-Next.js frontend for SkillForge. See `../skillforge-frontend-architecture.md`
+Next.js frontend for Portlio. See `../portlio-frontend-architecture.md`
 (or wherever your copy of the architecture doc lives) for the full design,
 this README only covers running what's built so far.
 
@@ -17,7 +17,7 @@ shadcn/ui - TanStack Query - next-themes - lucide-react
 ## Prerequisites
 
 - Node.js 20+
-- The SkillForge backend running locally (`uvicorn app.main:app --reload`
+- The Portlio backend running locally (`uvicorn app.main:app --reload`
   from `../backend`, after `pip install -r requirements.txt -r requirements-dev.txt`),
   or any reachable instance of it
 

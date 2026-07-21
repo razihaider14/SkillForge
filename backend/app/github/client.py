@@ -28,7 +28,7 @@ class GitHubAPIError(Exception):
 def _build_headers() -> dict:
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "SkillForge-App",
+        "User-Agent": "Portlio-App",
     }
     if settings.GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {settings.GITHUB_TOKEN}"

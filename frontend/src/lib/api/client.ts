@@ -1,7 +1,7 @@
 import { ApiError } from "@/lib/api/errors";
 
 /**
- * Base URL of the SkillForge FastAPI backend, e.g. "http://localhost:8000"
+ * Base URL of the Portlio FastAPI backend, e.g. "http://localhost:8000"
  * in dev. Must be NEXT_PUBLIC_-prefixed since query hooks call this from
  * the browser (see .env.example).
  *
@@ -13,7 +13,7 @@ function getApiBaseUrl(): string {
   if (!baseUrl) {
     throw new Error(
       "NEXT_PUBLIC_API_BASE_URL is not set. Copy .env.example to .env.local " +
-        "and point it at a running SkillForge backend.",
+        "and point it at a running Portlio backend.",
     );
   }
   // Normalize away a trailing slash so callers can write paths as "/skills/x"
@@ -49,7 +49,7 @@ async function extractErrorMessage(
 }
 
 /**
- * GET a path from the SkillForge backend and parse the JSON response.
+ * GET a path from the Portlio backend and parse the JSON response.
  * Every endpoint this app calls is a read, so this intentionally doesn't
  * support other HTTP methods, see the architecture doc's API Integration
  * Strategy and the backend's CORS setup, which only allows GET.
@@ -85,7 +85,7 @@ export async function apiGet<T>(
     // this case at all, so `status: 0` (never a real HTTP status) marks it
     // as a network error rather than any specific server response.
     throw new ApiError(
-      "Could not reach the SkillForge API. Check your connection and that " +
+      "Could not reach the Portlio API. Check your connection and that " +
         "the backend is running.",
       { status: 0, isNetworkError: true },
     );
@@ -94,7 +94,7 @@ export async function apiGet<T>(
   if (!response.ok) {
     const message = await extractErrorMessage(
       response,
-      `SkillForge API request failed with status ${response.status}.`,
+      `Portlio API request failed with status ${response.status}.`,
     );
     throw new ApiError(message, { status: response.status });
   }

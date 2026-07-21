@@ -1,5 +1,5 @@
 """
-Tests for the CORSMiddleware added to support the SkillForge frontend
+Tests for the CORSMiddleware added to support the Portlio frontend
 (a separate origin from this API). These check the actual response headers
 FastAPI/Starlette produce, not just that the middleware is present.
 """
@@ -103,6 +103,6 @@ class TestCORSMethodRestriction:
             },
         )
 
-        # Every SkillForge endpoint is a read; POST was never a supported
+        # Every Portlio endpoint is a read; POST was never a supported
         # method here, and CORS shouldn't imply otherwise.
         assert response.status_code == 400

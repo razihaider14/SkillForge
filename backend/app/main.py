@@ -12,7 +12,7 @@ from app.github.client import (
 
 app = FastAPI(title=settings.APP_NAME)
 
-# Allows the SkillForge frontend (a separate origin: localhost:3000 in dev,
+# Allows the Portlio frontend (a separate origin: localhost:3000 in dev,
 # a Vercel domain in production) to call this API from a browser. Every
 # endpoint here is a read (GET), so the allowed method list is deliberately
 # narrow. See app.config.Settings.FRONTEND_ORIGINS for how the allowed

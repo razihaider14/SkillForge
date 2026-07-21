@@ -1,4 +1,4 @@
-# SkillForge
+# Portlio
 
 An AI-powered developer companion for portfolio analysis, personalized learning roadmaps, and curated learning resources.
 
@@ -19,4 +19,4 @@ Currently in development
 
 ## Philosophy
 
-> SkillForge doesn't score developers. It identifies what a public portfolio demonstrates and provides evidence-based recommendations.
+> Portlio doesn't score developers. It identifies what a public portfolio demonstrates and provides evidence-based recommendations.

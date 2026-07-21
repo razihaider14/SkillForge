@@ -15,7 +15,7 @@ function renderHeader() {
 describe("Header", () => {
   it("renders the wordmark linking home", () => {
     renderHeader();
-    expect(screen.getByRole("link", { name: "SkillForge" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Portlio" })).toHaveAttribute(
       "href",
       "/",
     );

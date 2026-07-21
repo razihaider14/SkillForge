@@ -6,7 +6,7 @@ describe("AboutPage", () => {
   it("renders the page heading", () => {
     render(<AboutPage />);
     expect(
-      screen.getByRole("heading", { level: 1, name: "About SkillForge" }),
+      screen.getByRole("heading", { level: 1, name: "About Portlio" }),
     ).toBeInTheDocument();
   });
 
