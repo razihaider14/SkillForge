@@ -473,6 +473,34 @@ class TestEspIdf:
         assert not has("ESP-IDF", repo(f("CMakeLists.txt"), f("main/main.c")))
 
 
+class TestFreeRTOS:
+    def test_detected_by_freertos_config_header(self):
+        assert has("FreeRTOS", repo(f("FreeRTOSConfig.h"), f("main/main.c")))
+
+    def test_detected_by_freertos_directory(self):
+        assert has(
+            "FreeRTOS",
+            repo(d("Middlewares/Third_Party/FreeRTOS"), f("Core/Src/main.c")),
+        )
+
+    def test_detected_by_freertos_kernel_directory(self):
+        assert has("FreeRTOS", repo(d("freertos_kernel"), f("main/main.c")))
+
+    def test_not_detected_without_freertos_signals(self):
+        assert not has("FreeRTOS", repo(f("sdkconfig"), f("main/main.c")))
+
+    def test_esp_idf_project_using_freertos_detects_both(self):
+        # ESP-IDF vendors FreeRTOS by default; a project with both an
+        # ESP-IDF signal and a FreeRTOS signal should detect both
+        # independently, this is exactly the "ESP32 -> FreeRTOS" case
+        # that recommendations rely on being suppressible.
+        technologies = detect_technologies(
+            repo(f("sdkconfig"), f("FreeRTOSConfig.h"), f("main/main.c"))
+        )
+        assert "ESP-IDF" in technologies
+        assert "FreeRTOS" in technologies
+
+
 class TestStm32:
     def test_detected_by_ioc_extension(self):
         assert has("STM32CubeIDE", repo(f("MyProject.ioc"), f("Core/Src/main.c")))

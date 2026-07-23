@@ -400,6 +400,40 @@ RULES: list[Rule] = [
         priority=20,
     ),
     Rule(
+        # FreeRTOSConfig.h is a mandatory, project-provided configuration
+        # header required by every FreeRTOS port, it has no purpose
+        # outside a FreeRTOS integration, making it a near-certain,
+        # tree-only signal (no file content download required).
+        #
+        # The "FreeRTOS"/"freertos_kernel" directory names are a secondary,
+        # slightly weaker signal that also catches projects which vendor
+        # the FreeRTOS kernel source directly (e.g. STM32CubeMX-generated
+        # projects under Middlewares/Third_Party/FreeRTOS, or the
+        # upstream kernel's own "FreeRTOS-Kernel"/"freertos_kernel" layout)
+        # without necessarily including a top-level FreeRTOSConfig.h at a
+        # path this rule can see.
+        #
+        # NOTE: this rule intentionally does not attempt symbol-level
+        # detection (e.g. xTaskCreate()/vTaskDelay() usage) because that
+        # would require downloading arbitrary .c/.h source files, which
+        # app.github.content_targets does not currently do for non-Arduino
+        # embedded projects (see CONTENT_TARGET_COMPANION_EXTENSIONS, which
+        # today is only populated alongside a .ino match). Adding that is a
+        # deliberate follow-up (Phase 6's evidence_strength work is where
+        # "declared vs. demonstrated" for this rule gets revisited), not an
+        # oversight.
+        name="FreeRTOS",
+        matchers=[
+            AnyOf(
+                HasFilename("FreeRTOSConfig.h"),
+                HasDirectory("FreeRTOS", "freertos_kernel", "FreeRTOS-Kernel"),
+            )
+        ],
+        category=RuleCategory.EMBEDDED,
+        confidence=0.9,
+        priority=20,
+    ),
+    Rule(
         # .ioc is the STM32CubeMX peripheral configuration file, generated
         # exclusively by STM32CubeIDE / STM32CubeMX.
         name="STM32CubeIDE",
